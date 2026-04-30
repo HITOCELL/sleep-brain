@@ -21,7 +21,12 @@ export async function POST(request: NextRequest) {
     const result = calculateResult(answers);
 
     const now = new Date();
-    const timestamp = now.toISOString();
+    const timestamp = now.toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    }).replace(/\//g, '-');
 
     const payload = {
       timestamp,
