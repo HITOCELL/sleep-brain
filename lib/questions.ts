@@ -1,0 +1,226 @@
+import { Question } from './types';
+
+export const questions: Question[] = [
+  {
+    id: 1,
+    text: '現在の年齢を教えてください。',
+    options: [
+      { label: '20代', value: 'A' },
+      { label: '30代', value: 'B' },
+      { label: '40代', value: 'C' },
+      { label: '50代', value: 'D' },
+      { label: '60代以上', value: 'E' },
+    ],
+  },
+  {
+    id: 2,
+    text: '性別を教えてください。',
+    options: [
+      { label: '女性', value: 'A' },
+      { label: '男性', value: 'B' },
+      { label: '回答しない', value: 'C' },
+    ],
+  },
+  {
+    id: 3,
+    text: '現在のお仕事・生活スタイルに近いものを教えてください。',
+    options: [
+      { label: '会社員', value: 'A' },
+      { label: '経営者・個人事業主', value: 'B' },
+      { label: '主婦・主夫', value: 'C' },
+      { label: '美容・健康・施術関係', value: 'D' },
+      { label: '夜勤・シフト勤務', value: 'E' },
+      { label: 'その他', value: 'F' },
+    ],
+  },
+  {
+    id: 4,
+    text: '平均の睡眠時間はどれくらいですか？',
+    options: [
+      { label: '5時間未満', value: 'A' },
+      { label: '5〜6時間', value: 'B' },
+      { label: '6〜7時間', value: 'C' },
+      { label: '7〜8時間', value: 'D' },
+      { label: '8時間以上', value: 'E' },
+    ],
+  },
+  {
+    id: 5,
+    text: '寝つきについて、最も近いものを選んでください。',
+    options: [
+      { label: '布団に入ってすぐ眠れる', value: 'A' },
+      { label: '15〜30分くらいで眠れる', value: 'B' },
+      { label: '30分以上かかることが多い', value: 'C' },
+      { label: '1時間以上眠れないことがある', value: 'D' },
+      { label: '夜になると頭が冴えて眠れない', value: 'E' },
+    ],
+  },
+  {
+    id: 6,
+    text: '夜中に目が覚めることはありますか？',
+    options: [
+      { label: 'ほとんどない', value: 'A' },
+      { label: '週に1〜2回ある', value: 'B' },
+      { label: 'ほぼ毎日1回は起きる', value: 'C' },
+      { label: '夜中に何度も起きる', value: 'D' },
+      { label: '起きたあと、なかなか眠れない', value: 'E' },
+    ],
+  },
+  {
+    id: 7,
+    text: '朝起きた時の状態に近いものを選んでください。',
+    options: [
+      { label: 'スッキリ起きられる', value: 'A' },
+      { label: '少し眠気はあるが動ける', value: 'B' },
+      { label: '起きた瞬間から体が重い', value: 'C' },
+      { label: '寝ても疲れが取れていない', value: 'D' },
+      { label: '朝から気分が落ちていることが多い', value: 'E' },
+    ],
+  },
+  {
+    id: 8,
+    text: '日中の眠気について教えてください。',
+    options: [
+      { label: 'ほとんど眠くならない', value: 'A' },
+      { label: '昼過ぎに少し眠くなる', value: 'B' },
+      { label: '仕事中や移動中に眠くなる', value: 'C' },
+      { label: '強い眠気で集中できないことがある', value: 'D' },
+      { label: '休日は長時間寝てしまう', value: 'E' },
+    ],
+  },
+  {
+    id: 9,
+    text: 'いびきや呼吸について、当てはまるものはありますか？',
+    options: [
+      { label: '特に気にならない', value: 'A' },
+      { label: 'いびきを指摘されたことがある', value: 'B' },
+      { label: '寝ている時に呼吸が止まっていると言われたことがある', value: 'C' },
+      { label: '朝、口が乾いていることが多い', value: 'D' },
+      { label: '自分ではわからない', value: 'E' },
+    ],
+  },
+  {
+    id: 10,
+    text: '寝る前のスマホ・PCの使用について教えてください。',
+    options: [
+      { label: '寝る1時間前には見ない', value: 'A' },
+      { label: '寝る直前まで少し見る', value: 'B' },
+      { label: '寝る直前まで長時間見る', value: 'C' },
+      { label: '布団の中でも見る', value: 'D' },
+      { label: '動画やSNSを見ながら寝落ちする', value: 'E' },
+    ],
+  },
+  {
+    id: 11,
+    text: 'カフェインを摂る時間について教えてください。',
+    options: [
+      { label: 'ほとんど摂らない', value: 'A' },
+      { label: '朝だけ摂る', value: 'B' },
+      { label: '昼過ぎまで摂る', value: 'C' },
+      { label: '夕方以降も摂る', value: 'D' },
+      { label: '夜にもコーヒー・お茶・エナジードリンクを飲む', value: 'E' },
+    ],
+  },
+  {
+    id: 12,
+    text: '飲酒について教えてください。',
+    options: [
+      { label: 'ほとんど飲まない', value: 'A' },
+      { label: '週に1〜2回飲む', value: 'B' },
+      { label: '週に3回以上飲む', value: 'C' },
+      { label: '寝る前に飲むことが多い', value: 'D' },
+      { label: '飲まないと眠れないことがある', value: 'E' },
+    ],
+  },
+  {
+    id: 13,
+    text: '入浴について教えてください。',
+    options: [
+      { label: '湯船に入ることが多い', value: 'A' },
+      { label: 'シャワーだけの日が多い', value: 'B' },
+      { label: '寝る直前に入ることが多い', value: 'C' },
+      { label: '入浴時間がバラバラ', value: 'D' },
+      { label: '忙しくて入浴が雑になりやすい', value: 'E' },
+    ],
+  },
+  {
+    id: 14,
+    text: '運動・活動量について教えてください。',
+    options: [
+      { label: '定期的に運動している', value: 'A' },
+      { label: '軽い散歩やストレッチはしている', value: 'B' },
+      { label: 'ほとんど運動していない', value: 'C' },
+      { label: '座っている時間が長い', value: 'D' },
+      { label: '疲れすぎて動く気力がない', value: 'E' },
+    ],
+  },
+  {
+    id: 15,
+    text: 'ストレスや緊張状態について教えてください。',
+    options: [
+      { label: 'あまりストレスは感じていない', value: 'A' },
+      { label: '少しストレスはある', value: 'B' },
+      { label: '常に考えごとが多い', value: 'C' },
+      { label: '夜になっても頭が休まらない', value: 'D' },
+      { label: '不安や焦りで眠りにくい', value: 'E' },
+    ],
+  },
+  {
+    id: 16,
+    text: '身体の状態で当てはまるものを選んでください。',
+    options: [
+      { label: '特に気になる不調はない', value: 'A' },
+      { label: '肩こり・首こりがある', value: 'B' },
+      { label: '腰痛や身体の重だるさがある', value: 'C' },
+      { label: '頭痛や眼精疲労がある', value: 'D' },
+      { label: '自律神経が乱れている感じがある', value: 'E' },
+    ],
+  },
+  {
+    id: 17,
+    text: '美容面で気になるものを選んでください。',
+    options: [
+      { label: '特に気にならない', value: 'A' },
+      { label: '肌荒れ', value: 'B' },
+      { label: 'くすみ', value: 'C' },
+      { label: 'むくみ', value: 'D' },
+      { label: 'たるみ・疲れ顔', value: 'E' },
+    ],
+  },
+  {
+    id: 18,
+    text: '最近の集中力・仕事のパフォーマンスについて教えてください。',
+    options: [
+      { label: '問題なく集中できている', value: 'A' },
+      { label: '少し集中力が落ちている', value: 'B' },
+      { label: '午後になると集中力が下がる', value: 'C' },
+      { label: '判断力ややる気が落ちている', value: 'D' },
+      { label: '感情の波が大きく、仕事に影響している', value: 'E' },
+    ],
+  },
+  {
+    id: 19,
+    text: '今、一番改善したいことは何ですか？',
+    options: [
+      { label: '寝つきを良くしたい', value: 'A' },
+      { label: '夜中に起きないようにしたい', value: 'B' },
+      { label: '朝スッキリ起きたい', value: 'C' },
+      { label: '疲労感を減らしたい', value: 'D' },
+      { label: '美容・肌の状態を整えたい', value: 'E' },
+      { label: '仕事のパフォーマンスを上げたい', value: 'F' },
+      { label: 'いびきや家族への影響を見直したい', value: 'G' },
+    ],
+  },
+  {
+    id: 20,
+    text: '睡眠改善に対して、今の気持ちに近いものを選んでください。',
+    options: [
+      { label: 'まずは無料で情報を知りたい', value: 'A' },
+      { label: '自分でできることから始めたい', value: 'B' },
+      { label: '動画講座で学びたい', value: 'C' },
+      { label: '個別に相談したい', value: 'D' },
+      { label: '脳波測定などで自分の状態を見える化したい', value: 'E' },
+      { label: '本格的に生活を変えたい', value: 'F' },
+    ],
+  },
+];
