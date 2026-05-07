@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { track } from '@/lib/track';
 
 export default function EmailPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function EmailPage() {
     if (typeof window === 'undefined') return;
     const answers = localStorage.getItem('diagnosis_answers');
     if (!answers) router.replace('/quiz');
+    else track('email_view', 21);
   }, [router]);
 
   function isValidEmail(v: string) {
