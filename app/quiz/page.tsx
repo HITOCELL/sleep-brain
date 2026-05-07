@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { questions } from '@/lib/questions';
+import { track, getOrCreateSessionId } from '@/lib/track';
 
 export default function QuizPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+
+  useEffect(() => {
+    // クイズ開始のたびに新しいセッションIDを発行 & 前回の送信フラグをリセット
+    const newId = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    localStorage.setItem('sleep_session_id', newId);
+    localStorage.removeItem('diagnosis_submitted');
+    localStorage.removeItem('diagnosis_line_added');
+    track('quiz_start', 0);
+  }, []);
 
   const question = questions[currentStep];
   const progress = (currentStep + 1) / questions.length;
@@ -17,20 +27,32 @@ export default function QuizPage() {
     setSelected(value);
   }
 
+  function saveProgress(currentAnswers: string[]) {
+    const sessionId = getOrCreateSessionId();
+    fetch('/api/diagnosis/save-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: currentAnswers, sessionId, userAgent: navigator.userAgent }),
+    }).catch(() => {});
+  }
+
   function handleNext() {
     if (!selected) return;
     const newAnswers = [...answers, selected];
+    saveProgress(newAnswers);
     if (currentStep < questions.length - 1) {
+      track('quiz_step', currentStep + 1);
       setAnswers(newAnswers);
       setCurrentStep(currentStep + 1);
       setSelected(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
+      track('quiz_complete', questions.length);
       if (typeof window !== 'undefined') {
         localStorage.setItem('diagnosis_answers', JSON.stringify(newAnswers));
-        localStorage.removeItem('diagnosis_email_submitted');
+        localStorage.removeItem('diagnosis_line_added');
       }
-      router.push('/email');
+      router.push('/line');
     }
   }
 

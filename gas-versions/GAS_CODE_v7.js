@@ -1,6 +1,6 @@
 /**
  * 睡眠傾差値診断アプリ — Google Apps Script (Webhook)
- * version: 8
+ * version: 7
  *
  * 【Webアプリとしてデプロイする手順】
  * 1. Apps Script エディタ右上「デプロイ」→「デプロイを管理」
@@ -115,8 +115,6 @@ function handleSubmit(data) {
 
   sheet.appendRow(row);
   Logger.log('handleSubmit: 新規追加 sessionId=' + (data.sessionId || ''));
-
-  try { buildSummary(); } catch(e) { Logger.log('buildSummary error: ' + e); }
   return buildResponse({ success: true });
 }
 
@@ -165,7 +163,6 @@ function handleTracking(data) {
     sheet.appendRow(row);
   }
 
-  try { buildSummary(); } catch(e) { Logger.log('buildSummary error: ' + e); }
   return buildResponse({ success: true });
 }
 
@@ -340,33 +337,22 @@ function buildSummary() {
   sheet.getRange(1, 1, 1, 5)
     .setBackground('#14244A').setFontColor('#FFFFFF').setFontWeight('bold');
 
-  // データ行（1パス目: 離脱数と到達数を計算して総離脱数を求める）
+  // データ行
   var tableRows = [];
   var dropoutCounts = [];
-  var arrivalCounts = [];
-  var totalDropouts = 0;
 
   for (var ri = 0; ri < stepDefs.length; ri++) {
-    var sn  = stepDefs[ri][0];
-    var arr = arrivals[sn] || 0;
+    var sn    = stepDefs[ri][0];
+    var label = stepDefs[ri][1];
+    var arr   = arrivals[sn] || 0;
+
+    // 離脱数 = 到達数(N) - 到達数(N+1)  ※最後のステップは離脱なし
     var nextStep = ri < stepDefs.length - 1 ? stepDefs[ri + 1][0] : -1;
-    var dropout  = (nextStep >= 0 && arr > 0) ? arr - (arrivals[nextStep] || 0) : 0;
-    dropoutCounts.push(dropout);
-    arrivalCounts.push(arr);
-    totalDropouts += dropout;
-  }
-
-  // 2パス目: 離脱率 = 各ステップの離脱数 ÷ 全体の総離脱数（全ステップ合計で100%）
-  for (var ri = 0; ri < stepDefs.length; ri++) {
-    var sn       = stepDefs[ri][0];
-    var label    = stepDefs[ri][1];
-    var arr      = arrivalCounts[ri];
-    var dropout  = dropoutCounts[ri];
-    var dropRate = (totalDropouts > 0 && dropout > 0)
-      ? Math.round(dropout / totalDropouts * 1000) / 10
-      : 0;
+    var dropout  = nextStep >= 0 ? arr - (arrivals[nextStep] || 0) : 0;
+    var dropRate = arr > 0 ? Math.round(dropout / arr * 1000) / 10 : 0;
 
     tableRows.push([sn, label, arr, dropout, dropRate]);
+    dropoutCounts.push(dropout);
   }
 
   sheet.getRange(2, 1, tableRows.length, 5).setValues(tableRows);
@@ -386,22 +372,24 @@ function buildSummary() {
     else if (bi >= 21)  sheet.getRange(rowNum, 1, 1, 5).setBackground('#EDE9FE');
   }
 
-  // 離脱率セルの色分け（全体の総離脱数に占める割合で判定）
-  for (var ci = 0; ci < dropoutCounts.length; ci++) {
-    var d    = dropoutCounts[ci];
-    var pct  = (totalDropouts > 0 && d > 0) ? d / totalDropouts : 0;
-    var bg   = '#F3F4F6';
-    if (pct >= 0.20)      bg = '#EF4444'; // 20%以上: 赤
-    else if (pct >= 0.12) bg = '#F97316'; // 12%以上: オレンジ
-    else if (pct >= 0.07) bg = '#EAB308'; // 7%以上:  黄
-    else if (pct >= 0.03) bg = '#84CC16'; // 3%以上:  黄緑
-    else if (d > 0)       bg = '#22C55E'; // 離脱あり: 緑
-    sheet.getRange(ci + 2, 5)
-      .setBackground(bg)
-      .setFontColor(d > 0 ? '#FFFFFF' : '#6B7280')
-      .setFontWeight('bold');
-    // 離脱数セルも同じ色で
-    sheet.getRange(ci + 2, 4)
+  // 離脱数セルの色分け（Q1〜Q20の離脱が多いほど赤）
+  var maxDropout = 0;
+  for (var mi = 1; mi <= 20; mi++) {
+    if (dropoutCounts[mi] > maxDropout) maxDropout = dropoutCounts[mi];
+  }
+
+  for (var ci = 1; ci <= 20; ci++) {
+    var d = dropoutCounts[ci];
+    var bg = '#F3F4F6';
+    if (maxDropout > 0 && d > 0) {
+      var ratio = d / maxDropout;
+      if (ratio >= 0.8)      bg = '#EF4444';
+      else if (ratio >= 0.6) bg = '#F97316';
+      else if (ratio >= 0.4) bg = '#EAB308';
+      else if (ratio >= 0.2) bg = '#84CC16';
+      else                   bg = '#22C55E';
+    }
+    sheet.getRange(ci + 1, 4)
       .setBackground(bg)
       .setFontColor(d > 0 ? '#FFFFFF' : '#6B7280')
       .setFontWeight('bold');
@@ -521,37 +509,6 @@ function runDiagnostics() {
 
   buildSummary();
   Logger.log('=== 診断完了 ===');
-}
-
-// ============================================================
-// 自動サマリー更新トリガー設定（一度だけ実行）
-// ============================================================
-
-function setupTimeTrigger() {
-  // 既存のbuildSummaryトリガーを削除
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === 'buildSummary') {
-      ScriptApp.deleteTrigger(triggers[i]);
-    }
-  }
-  // 1分ごとにbuildSummaryを自動実行
-  ScriptApp.newTrigger('buildSummary')
-    .timeBased()
-    .everyMinutes(1)
-    .create();
-  Logger.log('トリガー設定完了: buildSummary を1分ごとに自動実行');
-  try {
-    SpreadsheetApp.getUi().alert('完了', 'サマリーが1分ごとに自動更新されます。', SpreadsheetApp.getUi().ButtonSet.OK);
-  } catch(_) {}
-}
-
-function deleteTriggers() {
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
-  }
-  Logger.log('全トリガーを削除しました');
 }
 
 /**
