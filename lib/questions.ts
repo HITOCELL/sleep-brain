@@ -46,7 +46,8 @@ export const questions: Question[] = [
   },
   {
     id: 5,
-    text: '寝つきについて、最も近いものを選んでください。',
+    text: '寝つきについて、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '布団に入ってすぐ眠れる', value: 'A' },
       { label: '15〜30分くらいで眠れる', value: 'B' },
@@ -57,9 +58,10 @@ export const questions: Question[] = [
   },
   {
     id: 6,
-    text: '夜中に目が覚めることはありますか？',
+    text: '夜中の目覚めについて、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
-      { label: 'ほとんどない', value: 'A' },
+      { label: 'ほとんど起きない', value: 'A' },
       { label: '週に1〜2回ある', value: 'B' },
       { label: 'ほぼ毎日1回は起きる', value: 'C' },
       { label: '夜中に何度も起きる', value: 'D' },
@@ -68,7 +70,8 @@ export const questions: Question[] = [
   },
   {
     id: 7,
-    text: '朝起きた時の状態に近いものを選んでください。',
+    text: '朝起きた時の状態について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: 'スッキリ起きられる', value: 'A' },
       { label: '少し眠気はあるが動ける', value: 'B' },
@@ -79,7 +82,8 @@ export const questions: Question[] = [
   },
   {
     id: 8,
-    text: '日中の眠気について教えてください。',
+    text: '日中の眠気について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: 'ほとんど眠くならない', value: 'A' },
       { label: '昼過ぎに少し眠くなる', value: 'B' },
@@ -90,7 +94,8 @@ export const questions: Question[] = [
   },
   {
     id: 9,
-    text: 'いびきや呼吸について、当てはまるものはありますか？',
+    text: 'いびきや呼吸について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '特に気にならない', value: 'A' },
       { label: 'いびきを指摘されたことがある', value: 'B' },
@@ -101,7 +106,8 @@ export const questions: Question[] = [
   },
   {
     id: 10,
-    text: '寝る前のスマホ・PCの使用について教えてください。',
+    text: '寝る前のスマホ・PCの使用について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '寝る1時間前には見ない', value: 'A' },
       { label: '寝る直前まで少し見る', value: 'B' },
@@ -112,7 +118,8 @@ export const questions: Question[] = [
   },
   {
     id: 11,
-    text: 'カフェインを摂る時間について教えてください。',
+    text: 'カフェインの摂取について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: 'ほとんど摂らない', value: 'A' },
       { label: '朝だけ摂る', value: 'B' },
@@ -123,7 +130,8 @@ export const questions: Question[] = [
   },
   {
     id: 12,
-    text: '飲酒について教えてください。',
+    text: '飲酒について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: 'ほとんど飲まない', value: 'A' },
       { label: '週に1〜2回飲む', value: 'B' },
@@ -134,7 +142,8 @@ export const questions: Question[] = [
   },
   {
     id: 13,
-    text: '入浴について教えてください。',
+    text: '入浴習慣について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '湯船に入ることが多い', value: 'A' },
       { label: 'シャワーだけの日が多い', value: 'B' },
@@ -145,7 +154,8 @@ export const questions: Question[] = [
   },
   {
     id: 14,
-    text: '運動・活動量について教えてください。',
+    text: '運動・活動量について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '定期的に運動している', value: 'A' },
       { label: '軽い散歩やストレッチはしている', value: 'B' },
@@ -156,7 +166,8 @@ export const questions: Question[] = [
   },
   {
     id: 15,
-    text: 'ストレスや緊張状態について教えてください。',
+    text: 'ストレス・緊張状態について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: 'あまりストレスは感じていない', value: 'A' },
       { label: '少しストレスはある', value: 'B' },
@@ -167,7 +178,8 @@ export const questions: Question[] = [
   },
   {
     id: 16,
-    text: '身体の状態で当てはまるものを選んでください。',
+    text: '身体の不調について、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '特に気になる不調はない', value: 'A' },
       { label: '肩こり・首こりがある', value: 'B' },
@@ -178,7 +190,8 @@ export const questions: Question[] = [
   },
   {
     id: 17,
-    text: '美容面で気になるものを選んでください。',
+    text: '美容面で気になることを、すべて選んでください。',
+    multi: true,
     options: [
       { label: '特に気にならない', value: 'A' },
       { label: '肌荒れ', value: 'B' },
@@ -189,7 +202,8 @@ export const questions: Question[] = [
   },
   {
     id: 18,
-    text: '最近の集中力・仕事のパフォーマンスについて教えてください。',
+    text: '集中力・仕事のパフォーマンスについて、当てはまるものをすべて選んでください。',
+    multi: true,
     options: [
       { label: '問題なく集中できている', value: 'A' },
       { label: '少し集中力が落ちている', value: 'B' },

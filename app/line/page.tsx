@@ -28,8 +28,7 @@ export default function LinePage() {
       if (LIFF_ID && raw) {
         // LIFFフロー：encodedAnswersでGASからuserIdを逆引きしてpush
         try {
-          const ans: string[] = JSON.parse(raw);
-          const encoded = btoa(ans.join(','));
+          const encoded = btoa(raw);
           fetch('/api/line/push-claim', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -39,8 +38,7 @@ export default function LinePage() {
       } else if (!LIFF_ID && raw) {
         // LIFFなし→旧フロー：URLカードを表示
         try {
-          const ans: string[] = JSON.parse(raw);
-          const encoded = btoa(ans.join(','));
+          const encoded = btoa(raw);
           setShareUrl(`https://sleep-brain.vercel.app/r?d=${encoded}`);
         } catch { /* ignore */ }
       }
@@ -77,8 +75,7 @@ export default function LinePage() {
       const raw = localStorage.getItem('diagnosis_answers');
       if (raw) {
         try {
-          const ans: string[] = JSON.parse(raw);
-          const encoded = btoa(ans.join(','));
+          const encoded = btoa(raw);
           // liff.stateはエンドポイントURL(/liff)に連結されるので ?d=... のみにする
           const liffState = encodeURIComponent(`?d=${encodeURIComponent(encoded)}`);
           window.location.href = `https://liff.line.me/${LIFF_ID}?liff.state=${liffState}`;

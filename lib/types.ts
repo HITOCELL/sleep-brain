@@ -1,4 +1,5 @@
 export type Answer = string;
+export type AnswerSet = string[];
 
 export type SleepTypeKey =
   | 'insomnia'
@@ -11,6 +12,7 @@ export type SleepTypeKey =
 export interface SleepType {
   key: SleepTypeKey;
   name: string;
+  catchphrase: string;
   description: string;
   commonProblems: string[];
   improvements: string[];
@@ -34,4 +36,5 @@ export interface Question {
   id: number;
   text: string;
   options: { label: string; value: string }[];
+  multi?: boolean;
 }

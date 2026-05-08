@@ -11,8 +11,19 @@ function ShareResultLoader() {
     const d = params.get('d');
     if (!d) { router.replace('/'); return; }
     try {
-      const answers = atob(d).split(',');
-      if (answers.length < 20) throw new Error('invalid');
+      const decoded = atob(d);
+      let answers: string[][];
+      if (decoded.startsWith('[')) {
+        // 新形式: JSON of string[][]
+        const parsed = JSON.parse(decoded);
+        if (!Array.isArray(parsed) || parsed.length < 20) throw new Error('invalid');
+        answers = parsed.map((v) => Array.isArray(v) ? v : [String(v)]);
+      } else {
+        // 旧形式: "A,B,C,D,..." (各設問1選択)
+        const flat = decoded.split(',');
+        if (flat.length < 20) throw new Error('invalid');
+        answers = flat.map((v) => [v]);
+      }
       localStorage.setItem('diagnosis_answers', JSON.stringify(answers));
       localStorage.setItem('diagnosis_line_added', '1');
       localStorage.setItem('diagnosis_submitted', '1');

@@ -9,17 +9,27 @@ function getLabel(questionIndex: number, value: string): string {
   return opt ? opt.label : value;
 }
 
+function labelsFor(questionIndex: number, values: string[]): string {
+  return values.map((v) => getLabel(questionIndex, v)).filter(Boolean).join(' / ');
+}
+
+function normalizeAnswers(input: unknown): string[][] {
+  if (!Array.isArray(input)) return [];
+  return input.map((v) => Array.isArray(v) ? v.map(String) : [String(v)]);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { lineId, answers, userAgent, sessionId } = body as {
+    const { lineId, answers: rawAnswers, userAgent, sessionId } = body as {
       lineId?: string;
-      answers: string[];
+      answers: unknown;
       userAgent?: string;
       sessionId?: string;
     };
 
-    if (!Array.isArray(answers) || answers.length < 20) {
+    const answers = normalizeAnswers(rawAnswers);
+    if (answers.length < 20) {
       return NextResponse.json({ success: false, error: 'invalid_params' }, { status: 400 });
     }
 
@@ -39,32 +49,32 @@ export async function POST(request: NextRequest) {
       timestamp,
       sessionId: sid,
       lineId: lineId ?? '',
-      q1:  getLabel(0,  answers[0]  ?? ''),
-      q2:  getLabel(1,  answers[1]  ?? ''),
-      q3:  getLabel(2,  answers[2]  ?? ''),
-      q4:  getLabel(3,  answers[3]  ?? ''),
-      q5:  getLabel(4,  answers[4]  ?? ''),
-      q6:  getLabel(5,  answers[5]  ?? ''),
-      q7:  getLabel(6,  answers[6]  ?? ''),
-      q8:  getLabel(7,  answers[7]  ?? ''),
-      q9:  getLabel(8,  answers[8]  ?? ''),
-      q10: getLabel(9,  answers[9]  ?? ''),
-      q11: getLabel(10, answers[10] ?? ''),
-      q12: getLabel(11, answers[11] ?? ''),
-      q13: getLabel(12, answers[12] ?? ''),
-      q14: getLabel(13, answers[13] ?? ''),
-      q15: getLabel(14, answers[14] ?? ''),
-      q16: getLabel(15, answers[15] ?? ''),
-      q17: getLabel(16, answers[16] ?? ''),
-      q18: getLabel(17, answers[17] ?? ''),
-      q19: getLabel(18, answers[18] ?? ''),
-      q20: getLabel(19, answers[19] ?? ''),
+      q1:  labelsFor(0,  answers[0]  ?? []),
+      q2:  labelsFor(1,  answers[1]  ?? []),
+      q3:  labelsFor(2,  answers[2]  ?? []),
+      q4:  labelsFor(3,  answers[3]  ?? []),
+      q5:  labelsFor(4,  answers[4]  ?? []),
+      q6:  labelsFor(5,  answers[5]  ?? []),
+      q7:  labelsFor(6,  answers[6]  ?? []),
+      q8:  labelsFor(7,  answers[7]  ?? []),
+      q9:  labelsFor(8,  answers[8]  ?? []),
+      q10: labelsFor(9,  answers[9]  ?? []),
+      q11: labelsFor(10, answers[10] ?? []),
+      q12: labelsFor(11, answers[11] ?? []),
+      q13: labelsFor(12, answers[12] ?? []),
+      q14: labelsFor(13, answers[13] ?? []),
+      q15: labelsFor(14, answers[14] ?? []),
+      q16: labelsFor(15, answers[15] ?? []),
+      q17: labelsFor(16, answers[16] ?? []),
+      q18: labelsFor(17, answers[17] ?? []),
+      q19: labelsFor(18, answers[18] ?? []),
+      q20: labelsFor(19, answers[19] ?? []),
       totalScore: result.totalScore,
       sleepDeviation: result.sleepDeviation,
       sleepZone: result.zone,
       mainType: result.mainType.key,
       subType: result.subType.key,
-      recommendedRoute: getLabel(19, answers[19] ?? ''),
+      recommendedRoute: labelsFor(19, answers[19] ?? []),
       userAgent: userAgent ?? '',
       createdAt: timestamp,
       utm_source: '',

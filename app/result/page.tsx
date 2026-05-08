@@ -8,7 +8,9 @@ import { DiagnosisResult } from '@/lib/types';
 import { track } from '@/lib/track';
 
 function calcDeviation(totalScore: number): number {
-  return Math.round(75 - (totalScore / 60) * 50);
+  // 0→65, 20→55, 40→45, 60→35, 80→25, 100→15 (clamp 15〜70)
+  const v = Math.round(65 - totalScore * 0.5);
+  return Math.max(15, Math.min(70, v));
 }
 
 function DeviationGauge({ value }: { value: number }) {
@@ -58,7 +60,10 @@ export default function ResultPage() {
     if (!submitted) { router.replace('/line'); return; }
     const raw = localStorage.getItem('diagnosis_answers');
     if (!raw) { router.replace('/quiz'); return; }
-    const answers: string[] = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    const answers: string[][] = Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0])
+      ? parsed
+      : (parsed as string[]).map((v) => [v]);
     setResult(calculateResult(answers));
 
     if (!localStorage.getItem('diagnosis_submitted')) {
@@ -102,18 +107,22 @@ export default function ResultPage() {
           </div>
         </header>
 
-        {/* ヒーロー結果カード */}
-        <div style={{ margin: '16px 16px 0', borderRadius: '24px', background: 'linear-gradient(135deg, #EEF0FF 0%, #E8FAF8 100%)', padding: '20px 20px 16px', boxShadow: '0 4px 20px rgba(124,131,246,0.14)' }}>
-          <p style={{ color: '#7C83F6', fontSize: '11px', fontWeight: 600, marginBottom: '6px' }}>あなたの睡眠タイプ</p>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div style={{ flex: 1, paddingRight: '8px' }}>
-              <h2 style={{ color: '#14244A', fontSize: '20px', fontWeight: 900, lineHeight: 1.3, marginBottom: '10px' }}>{result.mainType.name}</h2>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: zone.bg, color: zone.color, padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600 }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: zone.dot }} />
-                {result.zone}
-              </div>
-            </div>
+        {/* ヒーロー結果カード(MBTI風タイプ訴求) */}
+        <div style={{ margin: '16px 16px 0', borderRadius: '24px', background: 'linear-gradient(135deg, #1A2547 0%, #2B3D6E 100%)', padding: '24px 22px 20px', boxShadow: '0 8px 28px rgba(20,36,74,0.30)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-20px', right: '-30px', width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(110,214,211,0.10)' }} />
+          <div style={{ position: 'absolute', bottom: '-25px', left: '-20px', width: '90px', height: '90px', borderRadius: '50%', background: 'rgba(124,131,246,0.10)' }} />
+
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '11px', fontWeight: 600, marginBottom: '4px', letterSpacing: '0.08em' }}>YOUR SLEEP TYPE</p>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <h2 style={{ color: 'white', fontSize: '28px', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em' }}>{result.mainType.name}</h2>
             <DeviationGauge value={deviationScore} />
+          </div>
+          <p style={{ color: '#F9D423', fontSize: '13px', fontWeight: 700, lineHeight: 1.5, marginBottom: '12px' }}>
+            「{result.mainType.catchphrase}」
+          </p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.12)', color: 'white', padding: '6px 14px', borderRadius: '999px', fontSize: '11px', fontWeight: 700, border: `1px solid ${zone.dot}` }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: zone.dot }} />
+            {result.zone}
           </div>
         </div>
 

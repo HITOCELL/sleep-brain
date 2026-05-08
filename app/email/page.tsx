@@ -32,7 +32,10 @@ export default function EmailPage() {
     setRetryable(false);
 
     try {
-      const answers: string[] = JSON.parse(localStorage.getItem('diagnosis_answers') ?? '[]');
+      const parsed = JSON.parse(localStorage.getItem('diagnosis_answers') ?? '[]');
+      const answers: string[][] = Array.isArray(parsed) && parsed.length > 0 && Array.isArray(parsed[0])
+        ? parsed
+        : (parsed as string[]).map((v) => [v]);
       const res = await fetch('/api/diagnosis/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
