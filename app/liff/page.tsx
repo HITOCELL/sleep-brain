@@ -13,13 +13,6 @@ function LiffInner() {
   const [encodedAnswers, setEncodedAnswers] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const isSendingRef = useRef(false);
-  const visHandlerRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (visHandlerRef.current) document.removeEventListener('visibilitychange', visHandlerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (!LIFF_ID) { setPhase('error'); setErrorMsg('LIFF_ID未設定'); return; }
@@ -92,44 +85,27 @@ function LiffInner() {
     }
   }
 
-  function handleAddFriend() {
+  async function handleAddFriend() {
     setPhase('following');
     isSendingRef.current = false;
 
     const uid = lineUserId;
     const answers = encodedAnswers;
 
-    // visibilitychange: LIFFに戻った瞬間にpushを試みる
-    if (visHandlerRef.current) document.removeEventListener('visibilitychange', visHandlerRef.current);
-    const handler = async () => {
-      if (!document.hidden) {
-        document.removeEventListener('visibilitychange', handler);
-        visHandlerRef.current = null;
-        setPhase('sending');
-        const ok = await tryPush(uid, answers);
-        if (!ok) {
-          // 友達追加未完了 → もう一度ボタンを表示
-          setPhase('following');
-          // 再度visibilitychangeを設定
-          handleAddFriend();
-        }
-      }
-    };
-    visHandlerRef.current = handler;
-    document.addEventListener('visibilitychange', handler);
+    // GAS側で(userId, answers)を確実に紐付けてからhitocellへ遷移する。
+    // 紐付けがあれば、GASのcronトリガーが1分以内に自動でpushしてくれる
+    try {
+      await fetch('/api/line/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lineUserId: uid, encodedAnswers: answers }),
+      });
+    } catch { /* ignore — cron retry will still try once GAS has the row */ }
 
-    // setTimeout系: JSが止まっても再開後に発火する
-    [3000, 8000, 15000].forEach(ms => {
-      setTimeout(async () => {
-        if (phase === 'done' || isSendingRef.current) return;
-        await tryPush(uid, answers);
-      }, ms);
-    });
-
-    // hitocell経由で友達追加させ、登録経路「睡眠テスト流入」を必ず計上する
-    import('@line/liff').then(({ default: liff }) => {
-      liff.openWindow({ url: UTAGE_URL, external: false });
-    });
+    // hitocell経由で友達追加させ、登録経路「睡眠テスト流入」を必ず計上する。
+    // window.location.hrefで完全遷移することで、liff.openWindowで詰まっていた
+    // hitocell→UTAGE別LIFFへの転送チェーンを解消する
+    window.location.href = UTAGE_URL;
   }
 
   async function handleManualSend() {
@@ -196,10 +172,18 @@ function LiffInner() {
     <div style={wrap}><div style={card}>
       <div style={{ fontSize: '48px', marginBottom: '12px' }}>😴</div>
       <h1 style={{ color: '#14244A', fontSize: '18px', fontWeight: 900, marginBottom: '8px' }}>診断結果を受け取る</h1>
-      <p style={{ color: '#4D5875', fontSize: '13px', lineHeight: 1.7, marginBottom: '24px' }}>
-        公式LINEを友達追加すると<br /><strong>あなたの診断結果がLINEに自動で届きます</strong>
+      <p style={{ color: '#4D5875', fontSize: '13px', lineHeight: 1.7, marginBottom: '20px' }}>
+        公式LINEを友達追加すると<br /><strong>1〜2分以内に診断結果がLINEに届きます</strong>
       </p>
       <button onClick={handleAddFriend} style={greenBtn}>{lineIcon} 公式LINEを友達追加する</button>
+      {encodedAnswers && (
+        <button
+          onClick={() => { window.location.href = `https://sleep-brain.vercel.app/r?d=${encodedAnswers}`; }}
+          style={subBtn}
+        >
+          先にブラウザで結果を見る
+        </button>
+      )}
     </div></div>
   );
 
