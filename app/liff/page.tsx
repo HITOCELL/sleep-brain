@@ -31,8 +31,8 @@ function LiffInner() {
         const uid = profile.userId;
         setLineUserId(uid);
 
-        // GAS に (userId, encodedAnswers) を確実に紐付けてからユーザーをhitocellに送る。
-        // GAS cronが1分以内に push してくれるので、新規/既存どちらでも結果は届く。
+        // GAS に (userId, encodedAnswers) を確実に紐付けてから先へ進める。
+        // 失敗してもユーザー体験は止めないが、push経路としては必須なのでawaitする。
         await fetch('/api/line/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -46,9 +46,10 @@ function LiffInner() {
           body: JSON.stringify({ lineUserId: uid, encodedAnswers: d }),
         }).catch(() => {});
 
-        // すべてのユーザーをhitocell経由のUTAGE LIFFに通すことで「睡眠テスト流入」の
-        // 計上を保証する(既存友達はUTAGE側で再付与されないが、トラフィックは記録される)
-        setPhase('ready');
+        // 中間ボタンを廃止し、即hitocellに自動遷移する。
+        // これにより全ユーザーが必ずhitocell→UTAGE LIFFを経由するため
+        // 「睡眠テスト流入」の計上を保証する(既存友達はUTAGE側で再付与されない仕様)。
+        window.location.href = UTAGE_URL;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         setPhase('error');
@@ -151,8 +152,9 @@ function LiffInner() {
 
   if (phase === 'loading' || phase === 'sending') return (
     <div style={wrap}><div style={card}>
-      <div style={{ fontSize: '40px', marginBottom: '16px' }}>{phase === 'sending' ? '📨' : '🌙'}</div>
-      <p style={{ color: '#7C83F6', fontSize: '14px' }}>{phase === 'sending' ? 'LINEに送信中...' : '読み込み中...'}</p>
+      <div style={{ fontSize: '40px', marginBottom: '16px' }}>🌙</div>
+      <p style={{ color: '#14244A', fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>公式LINEに移動中...</p>
+      <p style={{ color: '#7C83F6', fontSize: '12px', lineHeight: 1.6 }}>診断結果は1〜2分以内にLINEに届きます</p>
     </div></div>
   );
 
