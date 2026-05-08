@@ -14,7 +14,7 @@ function verifySignature(body: string, signature: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
 }
 
-async function sendLinePush(lineUserId: string, encodedAnswers: string) {
+async function sendLinePush(lineUserId: string, encodedAnswers: string): Promise<boolean> {
   const resultUrl = `https://sleep-brain.vercel.app/r?d=${encodedAnswers}`;
   const res = await fetch('https://api.line.me/v2/bot/message/push', {
     method: 'POST',
@@ -33,9 +33,21 @@ async function sendLinePush(lineUserId: string, encodedAnswers: string) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     console.error('follow push error:', JSON.stringify(err));
-  } else {
-    console.log('follow push success to', lineUserId.slice(0, 8));
+    return false;
   }
+  console.log('follow push success to', lineUserId.slice(0, 8));
+  return true;
+}
+
+async function markPushedInGas(lineUserId: string) {
+  if (!GAS_URL) return;
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'mark_pushed', lineUserId }),
+    });
+  } catch { /* ignore */ }
 }
 
 export async function POST(req: NextRequest) {
@@ -68,10 +80,23 @@ export async function POST(req: NextRequest) {
         });
         const gasData = await gasRes.json();
 
-        if (gasData.success && gasData.encodedAnswers) {
-          await sendLinePush(lineUserId, gasData.encodedAnswers);
-        } else {
+        if (!gasData.success || !gasData.encodedAnswers) {
           console.log('follow: no encodedAnswers stored for', lineUserId.slice(0, 8));
+          continue;
+        }
+
+        // 既にpush済みなら何もしない(cronと重複しないように)
+        const p = gasData.pushed;
+        const alreadyPushed = (p === true || p === 'TRUE' || p === 'true' || p === 1 || p === '1' || p === 'expired');
+        if (alreadyPushed) {
+          console.log('follow: already pushed, skipping', lineUserId.slice(0, 8));
+          continue;
+        }
+
+        const ok = await sendLinePush(lineUserId, gasData.encodedAnswers);
+        if (ok) {
+          // GASに「push完了」を通知してcron再送を防ぐ
+          await markPushedInGas(lineUserId);
         }
       } catch (e) {
         console.error('follow webhook processing error:', e);
