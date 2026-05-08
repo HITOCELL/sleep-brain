@@ -31,20 +31,24 @@ function LiffInner() {
         const uid = profile.userId;
         setLineUserId(uid);
 
-        // GASに登録（診断データとuserIdを紐付け）
-        fetch('/api/line/register', {
+        // GAS に (userId, encodedAnswers) を確実に紐付けてからユーザーをhitocellに送る。
+        // GAS cronが1分以内に push してくれるので、新規/既存どちらでも結果は届く。
+        await fetch('/api/line/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lineUserId: uid, encodedAnswers: d }),
         }).catch(() => {});
 
-        // 既存友達の場合: 即pushを試みる
-        setPhase('sending');
-        const ok = await tryPush(uid, d);
-        if (!ok) {
-          // 未友達 → 友達追加ボタンを表示
-          setPhase('ready');
-        }
+        // 既存友達向けの即時push(失敗してもGAS cronが拾う)。fire-and-forget。
+        fetch('/api/line/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lineUserId: uid, encodedAnswers: d }),
+        }).catch(() => {});
+
+        // すべてのユーザーをhitocell経由のUTAGE LIFFに通すことで「睡眠テスト流入」の
+        // 計上を保証する(既存友達はUTAGE側で再付与されないが、トラフィックは記録される)
+        setPhase('ready');
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         setPhase('error');
