@@ -8,15 +8,25 @@ function getLabel(idx: number, value: string): string {
   return opt ? opt.label : value;
 }
 
+function labelsFor(idx: number, values: string[]): string {
+  return values.map((v) => getLabel(idx, v)).filter(Boolean).join(' / ');
+}
+
+function normalizeAnswers(input: unknown): string[][] {
+  if (!Array.isArray(input)) return [];
+  return input.map((v) => Array.isArray(v) ? v.map(String) : [String(v)]);
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { answers, sessionId, userAgent } = await request.json() as {
-      answers: string[];
+    const { answers: rawAnswers, sessionId, userAgent } = await request.json() as {
+      answers: unknown;
       sessionId: string;
       userAgent?: string;
     };
 
-    if (!sessionId || !Array.isArray(answers) || answers.length === 0) {
+    const answers = normalizeAnswers(rawAnswers);
+    if (!sessionId || answers.length === 0) {
       return NextResponse.json({ success: false });
     }
 
@@ -28,7 +38,6 @@ export async function POST(request: NextRequest) {
       hour12: false,
     }).replace(/\//g, '-');
 
-    // q1〜q20 のうち回答済み分だけ入れる（残りは空文字）
     const payload: Record<string, string> = {
       type: 'save_progress',
       timestamp,
@@ -36,7 +45,7 @@ export async function POST(request: NextRequest) {
       userAgent: userAgent ?? '',
     };
     for (let i = 0; i < 20; i++) {
-      payload[`q${i + 1}`] = i < answers.length ? getLabel(i, answers[i] ?? '') : '';
+      payload[`q${i + 1}`] = i < answers.length ? labelsFor(i, answers[i] ?? []) : '';
     }
 
     const gasUrl = process.env.GAS_WEBHOOK_URL;
