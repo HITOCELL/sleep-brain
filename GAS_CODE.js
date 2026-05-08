@@ -68,6 +68,7 @@ function doPost(e) {
     if (data.type === 'line_register')       return handleLineRegister(data);
     if (data.type === 'line_get')            return handleLineGet(data);
     if (data.type === 'line_get_by_answers') return handleLineGetByAnswers(data);
+    if (data.type === 'mark_pushed')         return handleMarkPushed(data);
     return handleSubmit(data);
   } catch (err) {
     Logger.log('doPost error: ' + err.toString());
@@ -306,6 +307,23 @@ function setupPushRetryTrigger() {
   try {
     SpreadsheetApp.getUi().alert('完了', 'pushリトライが1分ごとに自動実行されます。', SpreadsheetApp.getUi().ButtonSet.OK);
   } catch(_) {}
+}
+
+// Vercel側で push 成功した時に呼ばれる。cron が重複送信しないよう pushed=true にする
+function handleMarkPushed(data) {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(LINE_USERS_SHEET);
+  if (!sheet) return buildResponse({ success: false });
+  ensureLineUsersHeaders(sheet);
+  var all = sheet.getDataRange().getValues();
+  for (var i = 1; i < all.length; i++) {
+    if (all[i][0] === data.lineUserId) {
+      sheet.getRange(i + 1, 4).setValue(true);
+      sheet.getRange(i + 1, 6).setValue(new Date());
+      return buildResponse({ success: true });
+    }
+  }
+  return buildResponse({ success: false });
 }
 
 function handleLineGet(data) {
