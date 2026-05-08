@@ -173,23 +173,139 @@ function handleTracking(data) {
 // LINE ユーザー管理
 // ============================================================
 
+var LINE_USERS_HEADERS = ['lineUserId', 'encodedAnswers', 'createdAt', 'pushed', 'pushAttempts', 'lastTriedAt'];
+
+function ensureLineUsersHeaders(sheet) {
+  if (sheet.getLastColumn() < LINE_USERS_HEADERS.length) {
+    sheet.getRange(1, 1, 1, LINE_USERS_HEADERS.length).setValues([LINE_USERS_HEADERS]);
+  }
+}
+
 function handleLineRegister(data) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(LINE_USERS_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(LINE_USERS_SHEET);
-    sheet.getRange(1, 1, 1, 3).setValues([['lineUserId', 'encodedAnswers', 'createdAt']]);
+    sheet.getRange(1, 1, 1, LINE_USERS_HEADERS.length).setValues([LINE_USERS_HEADERS]);
+  } else {
+    ensureLineUsersHeaders(sheet);
   }
   var all = sheet.getDataRange().getValues();
   for (var i = 1; i < all.length; i++) {
     if (all[i][0] === data.lineUserId) {
+      // 既存行: encodedAnswersが変わったら push 状態をリセットして再送候補にする
+      var prevAnswers = all[i][1];
       sheet.getRange(i + 1, 2).setValue(data.encodedAnswers || '');
       sheet.getRange(i + 1, 3).setValue(new Date());
+      if (prevAnswers !== (data.encodedAnswers || '')) {
+        sheet.getRange(i + 1, 4).setValue(false); // pushed
+        sheet.getRange(i + 1, 5).setValue(0);     // pushAttempts
+        sheet.getRange(i + 1, 6).setValue('');    // lastTriedAt
+      }
       return buildResponse({ success: true });
     }
   }
-  sheet.appendRow([data.lineUserId, data.encodedAnswers || '', new Date()]);
+  sheet.appendRow([data.lineUserId, data.encodedAnswers || '', new Date(), false, 0, '']);
   return buildResponse({ success: true });
+}
+
+// ============================================================
+// LINE push 自動再送(time-driven trigger用)
+// ============================================================
+
+function pushLineDiagnosisResult_(lineUserId, encodedAnswers) {
+  var token = PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_ACCESS_TOKEN');
+  if (!token) {
+    Logger.log('LINE_CHANNEL_ACCESS_TOKEN がScript Propertiesに未設定です');
+    return false;
+  }
+  var resultUrl = 'https://sleep-brain.vercel.app/r?d=' + encodedAnswers;
+  var body = {
+    to: lineUserId,
+    messages: [{
+      type: 'text',
+      text: '🌙 あなたの睡眠診断結果が届きました！\n\n以下のリンクからいつでも結果を確認できます👇\n\n' + resultUrl
+    }]
+  };
+  var res = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + token },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  });
+  var code = res.getResponseCode();
+  if (code === 200) return true;
+  Logger.log('Push失敗 ' + code + ': ' + res.getContentText());
+  return false;
+}
+
+function retryPendingPushes() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(LINE_USERS_SHEET);
+  if (!sheet) return;
+  ensureLineUsersHeaders(sheet);
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+
+  var data = sheet.getRange(2, 1, lastRow - 1, LINE_USERS_HEADERS.length).getValues();
+  var nowMs = Date.now();
+  var maxAgeMs = 30 * 60 * 1000;  // 30分でタイムアウト
+  var maxAttempts = 30;           // 最大30回まで(30分×1分=30回想定)
+
+  for (var i = 0; i < data.length; i++) {
+    var rowIdx = i + 2;
+    var lineUserId = data[i][0];
+    var encodedAnswers = data[i][1];
+    var createdAt = data[i][2];
+    var pushed = data[i][3];
+    var attempts = data[i][4];
+
+    if (!lineUserId || !encodedAnswers) continue;
+    if (pushed === true || pushed === 'expired') continue;
+
+    // 旧行(pushedカラム未設定)は処理済み扱いにしてスキップ
+    if (pushed === '' || pushed === null || pushed === undefined) {
+      sheet.getRange(rowIdx, 4).setValue(true);
+      continue;
+    }
+
+    var createdAtMs = (createdAt instanceof Date) ? createdAt.getTime() :
+                      (createdAt ? new Date(createdAt).getTime() : nowMs);
+    if (nowMs - createdAtMs > maxAgeMs) {
+      sheet.getRange(rowIdx, 4).setValue('expired');
+      continue;
+    }
+
+    var attemptCount = (typeof attempts === 'number') ? attempts : Number(attempts) || 0;
+    if (attemptCount >= maxAttempts) continue;
+
+    var ok = pushLineDiagnosisResult_(lineUserId, encodedAnswers);
+    sheet.getRange(rowIdx, 5).setValue(attemptCount + 1);
+    sheet.getRange(rowIdx, 6).setValue(new Date());
+    if (ok) {
+      sheet.getRange(rowIdx, 4).setValue(true);
+      Logger.log('Push成功: ' + String(lineUserId).slice(0, 8));
+    }
+  }
+}
+
+function setupPushRetryTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'retryPendingPushes') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger('retryPendingPushes')
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+  Logger.log('retryPendingPushes トリガーを1分ごとに作成しました');
+  try {
+    SpreadsheetApp.getUi().alert('完了', 'pushリトライが1分ごとに自動実行されます。', SpreadsheetApp.getUi().ButtonSet.OK);
+  } catch(_) {}
 }
 
 function handleLineGet(data) {
