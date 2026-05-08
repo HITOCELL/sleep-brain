@@ -242,6 +242,20 @@ function pushLineDiagnosisResult_(lineUserId, encodedAnswers) {
 }
 
 function retryPendingPushes() {
+  // 並行実行を防止(同時に複数runが起動して同じ行をpushしないように)
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    Logger.log('retryPendingPushes: 別runが実行中のためスキップ');
+    return;
+  }
+  try {
+    retryPendingPushes_();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function retryPendingPushes_() {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(LINE_USERS_SHEET);
   if (!sheet) return;
@@ -348,12 +362,22 @@ function handleLineGet(data) {
   var sheet = ss.getSheetByName(LINE_USERS_SHEET);
   if (!sheet) return buildResponse({ success: false, encodedAnswers: null });
   var all = sheet.getDataRange().getValues();
+  // 同一userIdが複数行ある場合、いずれかでpushed=true なら true として返す
+  var found = false;
+  var encodedAnswers = null;
+  var anyPushed = false;
   for (var i = 1; i < all.length; i++) {
     if (all[i][0] === data.lineUserId) {
-      return buildResponse({ success: true, encodedAnswers: all[i][1] || null });
+      found = true;
+      if (!encodedAnswers) encodedAnswers = all[i][1] || null;
+      var p = all[i][3];
+      if (p === true || p === 'TRUE' || p === 'true' || p === 1 || p === '1' || p === 'expired') {
+        anyPushed = true;
+      }
     }
   }
-  return buildResponse({ success: false, encodedAnswers: null });
+  if (!found) return buildResponse({ success: false, encodedAnswers: null });
+  return buildResponse({ success: true, encodedAnswers: encodedAnswers, pushed: anyPushed });
 }
 
 function handleLineGetByAnswers(data) {
