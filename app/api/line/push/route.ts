@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN ?? '';
+const GAS_URL = process.env.GAS_WEBHOOK_URL ?? '';
+
+async function markPushedInGas(lineUserId: string) {
+  if (!GAS_URL) return;
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'mark_pushed', lineUserId }),
+    });
+  } catch { /* ignore — cron will skip after enough attempts anyway */ }
+}
 
 export async function POST(req: NextRequest) {
   const { lineUserId, encodedAnswers } = await req.json();
@@ -57,6 +69,8 @@ export async function POST(req: NextRequest) {
 
     if (res.ok) {
       console.log('LINE push success to', lineUserId.slice(0, 8));
+      // GASに「push完了」を通知して cron での重複送信を防ぐ
+      await markPushedInGas(lineUserId);
       return NextResponse.json({ ok: true });
     }
 
