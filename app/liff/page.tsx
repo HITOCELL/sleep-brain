@@ -32,15 +32,9 @@ function LiffInner() {
         setLineUserId(uid);
 
         // GAS に (userId, encodedAnswers) を確実に紐付けてから先へ進める。
-        // 失敗してもユーザー体験は止めないが、push経路としては必須なのでawaitする。
+        // pushはGAS cronに一任することで重複送信(画面遷移で即push がキャンセル
+        // されて mark_pushed が届かないことに起因)を確実に防ぐ。
         await fetch('/api/line/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lineUserId: uid, encodedAnswers: d }),
-        }).catch(() => {});
-
-        // 既存友達向けの即時push(失敗してもGAS cronが拾う)。fire-and-forget。
-        fetch('/api/line/push', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lineUserId: uid, encodedAnswers: d }),

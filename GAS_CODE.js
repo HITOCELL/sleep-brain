@@ -255,6 +255,9 @@ function retryPendingPushes() {
   var maxAgeMs = 30 * 60 * 1000;  // 30分でタイムアウト
   var maxAttempts = 30;           // 最大30回まで(30分×1分=30回想定)
 
+  // 同一実行内で同じuserIdに対して重複pushを発生させないためのトラッキング
+  var pushedThisRun = {};
+
   for (var i = 0; i < data.length; i++) {
     var rowIdx = i + 2;
     var lineUserId = data[i][0];
@@ -264,7 +267,11 @@ function retryPendingPushes() {
     var attempts = data[i][4];
 
     if (!lineUserId || !encodedAnswers) continue;
-    if (pushed === true || pushed === 'expired') continue;
+
+    // 真偽どちらの表現でも処理済み扱い (boolean true / "TRUE" / "true" / 1 / "expired")
+    var alreadyPushed = (pushed === true || pushed === 'TRUE' || pushed === 'true' ||
+                        pushed === 1 || pushed === '1' || pushed === 'expired');
+    if (alreadyPushed) continue;
 
     // 旧行(pushedカラム未設定)は処理済み扱いにしてスキップ
     if (pushed === '' || pushed === null || pushed === undefined) {
@@ -279,6 +286,13 @@ function retryPendingPushes() {
       continue;
     }
 
+    // 同一実行内で同じuserIdが複数行ある場合、最初の1件しかpushしない(重複防止)
+    if (pushedThisRun[lineUserId]) {
+      sheet.getRange(rowIdx, 4).setValue(true);
+      sheet.getRange(rowIdx, 6).setValue(new Date());
+      continue;
+    }
+
     var attemptCount = (typeof attempts === 'number') ? attempts : Number(attempts) || 0;
     if (attemptCount >= maxAttempts) continue;
 
@@ -287,6 +301,7 @@ function retryPendingPushes() {
     sheet.getRange(rowIdx, 6).setValue(new Date());
     if (ok) {
       sheet.getRange(rowIdx, 4).setValue(true);
+      pushedThisRun[lineUserId] = true;
       Logger.log('Push成功: ' + String(lineUserId).slice(0, 8));
     }
   }
@@ -309,21 +324,23 @@ function setupPushRetryTrigger() {
   } catch(_) {}
 }
 
-// Vercel側で push 成功した時に呼ばれる。cron が重複送信しないよう pushed=true にする
+// Vercel側で push 成功した時に呼ばれる。cron が重複送信しないよう pushed=true にする。
+// 過去の登録行が複数残っている場合でも全部マークするので、cronが取りこぼさない
 function handleMarkPushed(data) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(LINE_USERS_SHEET);
   if (!sheet) return buildResponse({ success: false });
   ensureLineUsersHeaders(sheet);
   var all = sheet.getDataRange().getValues();
+  var found = false;
   for (var i = 1; i < all.length; i++) {
     if (all[i][0] === data.lineUserId) {
       sheet.getRange(i + 1, 4).setValue(true);
       sheet.getRange(i + 1, 6).setValue(new Date());
-      return buildResponse({ success: true });
+      found = true;
     }
   }
-  return buildResponse({ success: false });
+  return buildResponse({ success: found });
 }
 
 function handleLineGet(data) {
