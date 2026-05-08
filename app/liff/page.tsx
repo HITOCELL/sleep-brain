@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID ?? '';
 const UTAGE_URL = 'https://osamusenseiline.hitocell.com/line/open/SeIcdYij9q5N?mtid=KdPOWzR4nIDK';
-const LINE_ADD_URL = 'https://line.me/R/ti/p/@673udzkj';
 
 type Phase = 'loading' | 'ready' | 'following' | 'sending' | 'done' | 'error';
 
@@ -127,9 +126,9 @@ function LiffInner() {
       }, ms);
     });
 
+    // hitocell経由で友達追加させ、登録経路「睡眠テスト流入」を必ず計上する
     import('@line/liff').then(({ default: liff }) => {
-      liff.openWindow({ url: LINE_ADD_URL, external: false });
-      fetch(UTAGE_URL, { mode: 'no-cors' }).catch(() => {});
+      liff.openWindow({ url: UTAGE_URL, external: false });
     });
   }
 
