@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID ?? '';
-const UTAGE_URL = 'https://utage-system.com/line/open/SeIcdYij9q5N?mtid=KdPOWzR4nIDK';
+const UTAGE_URL = 'https://osamusenseiline.hitocell.com/line/open/SeIcdYij9q5N?mtid=KdPOWzR4nIDK';
 const LINE_ADD_URL = 'https://line.me/R/ti/p/@673udzkj';
 
 type Phase = 'loading' | 'ready' | 'following' | 'sending' | 'done' | 'error';

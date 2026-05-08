@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/track';
 
-const UTAGE_URL = 'https://utage-system.com/line/open/SeIcdYij9q5N?mtid=KdPOWzR4nIDK';
+const UTAGE_URL = 'https://osamusenseiline.hitocell.com/line/open/SeIcdYij9q5N?mtid=KdPOWzR4nIDK';
 const LIFF_ID = process.env.NEXT_PUBLIC_LIFF_ID ?? '';
 
 export default function LinePage() {
