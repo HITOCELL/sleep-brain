@@ -25,11 +25,11 @@ function DeviationGauge({ value }: { value: number }) {
   return (
     <svg width="160" height="96" viewBox="0 0 160 96">
       <defs><linearGradient id="devGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor={gradStart}/><stop offset="100%" stopColor={gradEnd}/></linearGradient></defs>
-      <path d={bgPath} fill="none" stroke="#EEF0FF" strokeWidth="10" strokeLinecap="round"/>
+      <path d={bgPath} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="10" strokeLinecap="round"/>
       {fgPath && <path d={fgPath} fill="none" stroke="url(#devGrad)" strokeWidth="10" strokeLinecap="round"/>}
-      <text x={cx} y={cy - 2} textAnchor="middle" fill="#14244A" fontSize="32" fontWeight="900" fontFamily="-apple-system, sans-serif">{value}</text>
-      <text x={cx} y={cy + 16} textAnchor="middle" fill="#B0B8D8" fontSize="10" fontFamily="-apple-system, sans-serif">睡眠偏差値</text>
-      <text x={cx} y={cy + 30} textAnchor="middle" fill="#C5CBE8" fontSize="9" fontFamily="-apple-system, sans-serif">平均 50</text>
+      <text x={cx} y={cy - 2} textAnchor="middle" fill="#FFFFFF" fontSize="34" fontWeight="900" fontFamily="-apple-system, sans-serif" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))' }}>{value}</text>
+      <text x={cx} y={cy + 18} textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize="10" fontWeight="600" fontFamily="-apple-system, sans-serif">睡眠偏差値</text>
+      <text x={cx} y={cy + 32} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="9" fontFamily="-apple-system, sans-serif">平均 50</text>
     </svg>
   );
 }

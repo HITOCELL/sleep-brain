@@ -46,8 +46,7 @@ export const questions: Question[] = [
   },
   {
     id: 5,
-    text: '寝つきについて、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '寝つきについて、最も近いものを選んでください。',
     options: [
       { label: '布団に入ってすぐ眠れる', value: 'A' },
       { label: '15〜30分くらいで眠れる', value: 'B' },
@@ -58,10 +57,9 @@ export const questions: Question[] = [
   },
   {
     id: 6,
-    text: '夜中の目覚めについて、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '夜中に目が覚めることはありますか？',
     options: [
-      { label: 'ほとんど起きない', value: 'A' },
+      { label: 'ほとんどない', value: 'A' },
       { label: '週に1〜2回ある', value: 'B' },
       { label: 'ほぼ毎日1回は起きる', value: 'C' },
       { label: '夜中に何度も起きる', value: 'D' },
@@ -70,8 +68,7 @@ export const questions: Question[] = [
   },
   {
     id: 7,
-    text: '朝起きた時の状態について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '朝起きた時の状態に近いものを選んでください。',
     options: [
       { label: 'スッキリ起きられる', value: 'A' },
       { label: '少し眠気はあるが動ける', value: 'B' },
@@ -82,8 +79,7 @@ export const questions: Question[] = [
   },
   {
     id: 8,
-    text: '日中の眠気について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '日中の眠気について教えてください。',
     options: [
       { label: 'ほとんど眠くならない', value: 'A' },
       { label: '昼過ぎに少し眠くなる', value: 'B' },
@@ -106,8 +102,7 @@ export const questions: Question[] = [
   },
   {
     id: 10,
-    text: '寝る前のスマホ・PCの使用について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '寝る前のスマホ・PCの使用について教えてください。',
     options: [
       { label: '寝る1時間前には見ない', value: 'A' },
       { label: '寝る直前まで少し見る', value: 'B' },
@@ -118,8 +113,7 @@ export const questions: Question[] = [
   },
   {
     id: 11,
-    text: 'カフェインの摂取について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: 'カフェインを摂る時間について教えてください。',
     options: [
       { label: 'ほとんど摂らない', value: 'A' },
       { label: '朝だけ摂る', value: 'B' },
@@ -130,8 +124,7 @@ export const questions: Question[] = [
   },
   {
     id: 12,
-    text: '飲酒について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '飲酒について教えてください。',
     options: [
       { label: 'ほとんど飲まない', value: 'A' },
       { label: '週に1〜2回飲む', value: 'B' },
@@ -142,8 +135,7 @@ export const questions: Question[] = [
   },
   {
     id: 13,
-    text: '入浴習慣について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '入浴について教えてください。',
     options: [
       { label: '湯船に入ることが多い', value: 'A' },
       { label: 'シャワーだけの日が多い', value: 'B' },
@@ -154,8 +146,7 @@ export const questions: Question[] = [
   },
   {
     id: 14,
-    text: '運動・活動量について、当てはまるものをすべて選んでください。',
-    multi: true,
+    text: '運動・活動量について教えてください。',
     options: [
       { label: '定期的に運動している', value: 'A' },
       { label: '軽い散歩やストレッチはしている', value: 'B' },
