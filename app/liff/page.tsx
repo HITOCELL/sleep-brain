@@ -145,10 +145,17 @@ function LiffInner() {
   );
 
   if (phase === 'loading' || phase === 'sending') return (
-    <div style={wrap}><div style={card}>
-      <div style={{ fontSize: '40px', marginBottom: '16px' }}>🌙</div>
-      <p style={{ color: '#14244A', fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>公式LINEに移動中...</p>
-      <p style={{ color: '#7C83F6', fontSize: '12px', lineHeight: 1.6 }}>診断結果は1〜2分以内にLINEに届きます</p>
+    <div style={wrap}><div style={{ ...card, padding: '36px 24px' }}>
+      <div style={{ fontSize: '56px', marginBottom: '20px' }}>🌙</div>
+      <p style={{ color: '#14244A', fontSize: '20px', fontWeight: 900, lineHeight: 1.5, marginBottom: '14px' }}>
+        あなたの睡眠偏差値を<br />計算中！
+      </p>
+      <p style={{ color: '#4D5875', fontSize: '15px', fontWeight: 600, lineHeight: 1.7, marginBottom: '12px' }}>
+        回答まで90秒お待ちください
+      </p>
+      <p style={{ color: '#7C83F6', fontSize: '14px', fontWeight: 700, lineHeight: 1.6 }}>
+        結果はLINEに届きます
+      </p>
     </div></div>
   );
 
